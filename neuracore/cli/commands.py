@@ -11,4 +11,3 @@ def version() -> None:
     from neuracore import __version__
 
     typer.echo(__version__)
-

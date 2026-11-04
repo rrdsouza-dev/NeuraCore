@@ -1,2 +1,1 @@
 """Component registry extension point."""
-

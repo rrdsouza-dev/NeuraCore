@@ -12,4 +12,3 @@ class OllamaBackend(InferenceBackend):
 
     async def generate(self, prompt: str, *, model: str) -> str:
         raise NotImplementedError("Ollama generation is not implemented yet")
-

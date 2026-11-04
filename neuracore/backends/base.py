@@ -9,4 +9,3 @@ class InferenceBackend(ABC):
     @abstractmethod
     async def generate(self, prompt: str, *, model: str) -> str:
         """Generate a response for a prompt."""
-

@@ -11,4 +11,3 @@ def test_package_imports() -> None:
 def test_settings_override(monkeypatch) -> None:
     monkeypatch.setenv("NEURACORE_APP_NAME", "TestCore")
     assert Settings().app_name == "TestCore"
-

@@ -1,2 +1,1 @@
 """Application lifecycle extension point."""
-

@@ -9,4 +9,3 @@ class Settings(BaseSettings):
     app_name: str = "NeuraCore"
     ollama_base_url: str = "http://localhost:11434"
     model_config = SettingsConfigDict(env_prefix="NEURACORE_", env_file=".env", extra="ignore")
-
