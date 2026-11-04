@@ -1,0 +1,1 @@
+"""Resource monitor placeholder."""
