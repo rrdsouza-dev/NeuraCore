@@ -10,7 +10,7 @@ class BackendDeTeste(InferenceBackend):
         return f"resposta para: {prompt}"
 
 
-def test_health retorna_status_ok() -> None:
+def test_health_retorna_status_ok() -> None:
     client = TestClient(create_app(InferenceEngine(BackendDeTeste())))
     response = client.get("/health")
 
