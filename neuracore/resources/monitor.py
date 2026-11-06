@@ -1,7 +1,7 @@
 """Leitura básica de recursos disponíveis no sistema."""
 
-from pydantic import BaseModel
 import psutil
+from pydantic import BaseModel
 
 
 class ResourceSnapshot(BaseModel):
