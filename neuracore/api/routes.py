@@ -6,16 +6,19 @@ from fastapi.responses import Response
 from neuracore.inference.engine import InferenceEngine
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
 from neuracore.monitoring.metrics import inference_requests, render_metrics
+from neuracore.queue.engine import InferenceQueue
 from neuracore.resources.monitor import ResourceMonitor, ResourceSnapshot
 
 
 def create_router(
     engine: InferenceEngine,
     resource_monitor: ResourceMonitor | None = None,
+    inference_queue: InferenceQueue | None = None,
 ) -> APIRouter:
     """Cria as rotas com o motor de inferência injetado."""
     router = APIRouter()
     monitor = resource_monitor or ResourceMonitor()
+    queue = inference_queue
 
     @router.get("/health")
     async def health() -> dict[str, str]:
@@ -32,6 +35,8 @@ def create_router(
     @router.post("/v1/inference", response_model=InferenceResponse)
     async def inference(request: InferenceRequest) -> InferenceResponse:
         inference_requests.inc()
+        if queue is not None:
+            return await queue.submit(request)
         return await engine.generate(request)
 
     return router

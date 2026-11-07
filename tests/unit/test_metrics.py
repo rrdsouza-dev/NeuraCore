@@ -11,10 +11,9 @@ class BackendDeTeste(InferenceBackend):
 
 
 def test_metrics_expoe_formato_prometheus() -> None:
-    client = TestClient(create_app(InferenceEngine(BackendDeTeste())))
-    client.post("/v1/inference", json={"model": "teste", "prompt": "Olá"})
-
-    response = client.get("/metrics")
+    with TestClient(create_app(InferenceEngine(BackendDeTeste()))) as client:
+        client.post("/v1/inference", json={"model": "teste", "prompt": "Olá"})
+        response = client.get("/metrics")
 
     assert response.status_code == 200
     assert "neuracore_inference_requests_total" in response.text

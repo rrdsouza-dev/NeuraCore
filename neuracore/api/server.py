@@ -1,15 +1,30 @@
 """Factory da aplicação FastAPI."""
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from neuracore.api.routes import create_router
 from neuracore.inference.engine import InferenceEngine, create_default_engine
+from neuracore.queue.engine import InferenceQueue
 
 
 def create_app(engine: InferenceEngine | None = None) -> FastAPI:
     """Cria a aplicação com dependências explícitas e configuração padrão."""
-    application = FastAPI(title="NeuraCore", version="0.1.0")
-    application.include_router(create_router(engine or create_default_engine()))
+    runtime_engine = engine or create_default_engine()
+    inference_queue = InferenceQueue(runtime_engine)
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        await inference_queue.start()
+        try:
+            yield
+        finally:
+            await inference_queue.stop()
+
+    application = FastAPI(title="NeuraCore", version="0.1.0", lifespan=lifespan)
+    application.include_router(create_router(runtime_engine, inference_queue=inference_queue))
     return application
 
 

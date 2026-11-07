@@ -20,8 +20,8 @@ def test_monitor_coleta_recursos_basicos() -> None:
 
 
 def test_api_expoe_recursos_do_sistema() -> None:
-    client = TestClient(create_app(InferenceEngine(BackendDeTeste())))
-    response = client.get("/health/resources")
+    with TestClient(create_app(InferenceEngine(BackendDeTeste()))) as client:
+        response = client.get("/health/resources")
 
     assert response.status_code == 200
     assert set(response.json()) == {

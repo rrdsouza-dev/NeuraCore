@@ -11,16 +11,16 @@ class BackendDeTeste(InferenceBackend):
 
 
 def test_health_retorna_status_ok() -> None:
-    client = TestClient(create_app(InferenceEngine(BackendDeTeste())))
-    response = client.get("/health")
+    with TestClient(create_app(InferenceEngine(BackendDeTeste()))) as client:
+        response = client.get("/health")
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
 def test_inference_expoe_resposta_normalizada() -> None:
-    client = TestClient(create_app(InferenceEngine(BackendDeTeste())))
-    response = client.post("/v1/inference", json={"model": "teste", "prompt": "Olá"})
+    with TestClient(create_app(InferenceEngine(BackendDeTeste()))) as client:
+        response = client.post("/v1/inference", json={"model": "teste", "prompt": "Olá"})
 
     assert response.status_code == 200
     assert response.json() == {"model": "teste", "text": "resposta para: Olá"}
