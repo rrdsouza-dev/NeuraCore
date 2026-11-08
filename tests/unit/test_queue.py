@@ -36,11 +36,9 @@ async def test_fila_exige_inicio_antes_do_envio() -> None:
 async def test_fila_rejeita_excesso_de_solicitacoes() -> None:
     queue = InferenceQueue(InferenceEngine(BackendDeTeste()), max_size=1)
     await queue.start()
+    request = InferenceRequest(model="teste", prompt="ocupada")
     queue._jobs.put_nowait(
-        (
-            InferenceRequest(model="teste", prompt="ocupada"),
-            asyncio.get_running_loop().create_future(),
-        )
+        (request.priority.weight, 0, request, asyncio.get_running_loop().create_future())
     )
 
     with pytest.raises(QueueFullError, match="fila de inferência está cheia"):

@@ -17,10 +17,11 @@ class InferenceQueue:
         self.engine = engine
         if max_size < 1:
             raise ValueError("O tamanho máximo da fila deve ser positivo")
-        self._jobs: asyncio.Queue[tuple[InferenceRequest, asyncio.Future[InferenceResponse]]] = (
-            asyncio.Queue(maxsize=max_size)
-        )
+        self._jobs: asyncio.PriorityQueue[
+            tuple[int, int, InferenceRequest, asyncio.Future[InferenceResponse]]
+        ] = asyncio.PriorityQueue(maxsize=max_size)
         self._worker: asyncio.Task[None] | None = None
+        self._sequence = 0
 
     async def start(self) -> None:
         """Inicia o worker da fila."""
@@ -41,14 +42,15 @@ class InferenceQueue:
         loop = asyncio.get_running_loop()
         result: asyncio.Future[InferenceResponse] = loop.create_future()
         try:
-            self._jobs.put_nowait((request, result))
+            self._jobs.put_nowait((request.priority.weight, self._sequence, request, result))
+            self._sequence += 1
         except asyncio.QueueFull as error:
             raise QueueFullError("A fila de inferência está cheia") from error
         return await result
 
     async def _process(self) -> None:
         while True:
-            request, result = await self._jobs.get()
+            _, _, request, result = await self._jobs.get()
             try:
                 result.set_result(await self.engine.generate(request))
             except Exception as error:
