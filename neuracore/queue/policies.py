@@ -1,9 +1,9 @@
 """Políticas básicas para ordenação da fila."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class Priority(str, Enum):
+class Priority(StrEnum):
     """Níveis de prioridade expostos na API."""
 
     ALTA = "alta"
