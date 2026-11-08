@@ -11,4 +11,6 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_timeout_seconds: float = 60.0
     inference_queue_max_size: int = 100
+    ollama_retry_attempts: int = 2
+    ollama_retry_delay_seconds: float = 0.1
     model_config = SettingsConfigDict(env_prefix="NEURACORE_", env_file=".env", extra="ignore")
