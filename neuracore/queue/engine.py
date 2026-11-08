@@ -6,13 +6,19 @@ from neuracore.inference.engine import InferenceEngine
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
 
 
+class QueueFullError(RuntimeError):
+    """Indica que a fila atingiu o limite configurado."""
+
+
 class InferenceQueue:
     """Processa solicitações em ordem usando um único worker."""
 
-    def __init__(self, engine: InferenceEngine) -> None:
+    def __init__(self, engine: InferenceEngine, max_size: int = 100) -> None:
         self.engine = engine
+        if max_size < 1:
+            raise ValueError("O tamanho máximo da fila deve ser positivo")
         self._jobs: asyncio.Queue[tuple[InferenceRequest, asyncio.Future[InferenceResponse]]] = (
-            asyncio.Queue()
+            asyncio.Queue(maxsize=max_size)
         )
         self._worker: asyncio.Task[None] | None = None
 
@@ -34,7 +40,10 @@ class InferenceQueue:
             raise RuntimeError("A fila não foi iniciada")
         loop = asyncio.get_running_loop()
         result: asyncio.Future[InferenceResponse] = loop.create_future()
-        await self._jobs.put((request, result))
+        try:
+            self._jobs.put_nowait((request, result))
+        except asyncio.QueueFull as error:
+            raise QueueFullError("A fila de inferência está cheia") from error
         return await result
 
     async def _process(self) -> None:
