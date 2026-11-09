@@ -1,9 +1,9 @@
-# Contributing
+# Contribuindo
 
-NeuraCore is in an early infrastructure phase. Keep changes focused, typed, tested, and documented.
+O NeuraCore ainda está em uma fase inicial de infraestrutura. Mantenha as mudanças pequenas, tipadas, testadas e documentadas.
 
-1. Create a focused branch from `main`.
-2. Install with `pip install -e ".[dev]"`.
-3. Run `ruff check .`, `ruff format --check .`, `mypy`, and `pytest`.
-4. Use Conventional Commits and open a pull request describing the change.
+1. Crie uma branch específica a partir da `main`.
+2. Instale o projeto com `pip install -e ".[dev]"`.
+3. Execute `ruff check .`, `ruff format --check .`, `mypy` e `pytest`.
+4. Use mensagens de commit em português e abra um pull request explicando a mudança.
 
