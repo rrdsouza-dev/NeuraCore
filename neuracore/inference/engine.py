@@ -2,7 +2,9 @@
 
 from neuracore.backends.base import InferenceBackend
 from neuracore.backends.ollama import OllamaBackend
+from neuracore.backends.openai_compatible import OpenAICompatibleBackend
 from neuracore.core.config import Settings
+from neuracore.recovery.fallback import FallbackBackend
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
 
 
@@ -23,4 +25,11 @@ def create_default_engine(settings: Settings | None = None) -> InferenceEngine:
     runtime_settings = settings or Settings()
     if runtime_settings.inference_backend != "ollama":
         raise ValueError(f"Backend padrão não suportado: {runtime_settings.inference_backend}")
-    return InferenceEngine(OllamaBackend(runtime_settings))
+    primary = OllamaBackend(runtime_settings)
+    if runtime_settings.fallback_base_url:
+        fallback = OpenAICompatibleBackend(
+            runtime_settings.fallback_base_url,
+            api_key=runtime_settings.fallback_api_key,
+        )
+        return InferenceEngine(FallbackBackend(primary, fallback))
+    return InferenceEngine(primary)

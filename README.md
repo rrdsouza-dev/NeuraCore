@@ -44,6 +44,8 @@ mypy
 
 As configurações usam variáveis de ambiente com o prefixo `NEURACORE_`. Por padrão, o Ollama é procurado em `http://localhost:11434`.
 
+Para configurar um fallback compatível com OpenAI, defina `NEURACORE_FALLBACK_BASE_URL` e, se necessário, `NEURACORE_FALLBACK_API_KEY`.
+
 ## Roadmap
 
 1. Ampliar o contrato de inferência e o transporte do Ollama.

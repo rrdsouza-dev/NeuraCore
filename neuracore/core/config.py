@@ -15,4 +15,6 @@ class Settings(BaseSettings):
     ollama_retry_delay_seconds: float = 0.1
     ollama_circuit_failure_threshold: int = 3
     ollama_circuit_recovery_seconds: float = 30.0
+    fallback_base_url: str | None = None
+    fallback_api_key: str | None = None
     model_config = SettingsConfigDict(env_prefix="NEURACORE_", env_file=".env", extra="ignore")
