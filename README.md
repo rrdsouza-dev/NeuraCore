@@ -1,37 +1,37 @@
 # NeuraCore
 
-NeuraCore is an open-source Python foundation for extensible local AI inference. It is intended to sit between applications and inference backends, providing clear boundaries for lifecycle, resources, scheduling, observability, and recovery.
+O NeuraCore é uma base em Python para executar modelos de IA localmente de forma organizada e extensível. A ideia é ficar entre as aplicações e os backends de inferência, cuidando das partes comuns como fila, recursos, métricas e recuperação de falhas.
 
 ## Status
 
-Early-stage infrastructure. The current release establishes package boundaries, configuration, an Ollama backend contract, development tooling, and CI. Planned capabilities are not implemented yet.
+O projeto ainda está no começo. Já existe uma API funcional, integração inicial com o Ollama, fila assíncrona, prioridades, limite de capacidade, métricas, monitoramento básico, retry e testes automatizados. Os componentes mais avançados ainda estão sendo construídos.
 
 ## Architecture
 
-The `neuracore` package is separated into `core`, `inference`, `backends`, `scheduler`, `resources`, `queue`, `monitoring`, `recovery`, `api`, `policies`, and `cli`. Ollama is the first backend boundary; other backends can implement the shared asynchronous contract in `backends.base`.
+O pacote `neuracore` é dividido por responsabilidade: `core`, `inference`, `backends`, `scheduler`, `resources`, `queue`, `monitoring`, `recovery`, `api`, `policies` e `cli`. O Ollama é o primeiro backend. Novos backends podem implementar o contrato assíncrono definido em `backends.base`.
 
 ## Planned components
 
-- Backend abstraction and model lifecycle management
-- Resource awareness and scheduling
-- Asynchronous queues and inference sessions
-- Health, metrics, tracing, diagnostics, and recovery
-- FastAPI service and Typer CLI
+- Abstração para backends e gerenciamento do ciclo de vida dos modelos
+- Monitoramento de recursos e escalonamento
+- Filas assíncronas e sessões de inferência
+- Saúde da aplicação, métricas, tracing, diagnósticos e recuperação
+- Serviço FastAPI e CLI com Typer
 
 ## Technologies and requirements
 
-Python 3.11+, Ollama (optional at development time), FastAPI, Pydantic, httpx, psutil, Typer, Rich, Prometheus/OpenTelemetry, pytest, Ruff, and Mypy.
+Python 3.11 ou superior, Ollama, FastAPI, Pydantic, httpx, psutil, Typer, Rich, Prometheus/OpenTelemetry, pytest, Ruff e Mypy.
 
 ## Installation
 
 ```powershell
-py -3.11 -m venv .venv
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip setuptools wheel
 pip install -e ".[dev]"
 ```
 
-Ollama is the initial inference target. Install and run it separately when needed; this project does not download models automatically.
+O Ollama é o primeiro backend. A instalação e os modelos ficam por conta do desenvolvedor; o NeuraCore não baixa modelos automaticamente.
 
 ## Development
 
@@ -42,14 +42,14 @@ ruff format --check .
 mypy
 ```
 
-Configuration uses `NEURACORE_` environment variables, with `NEURACORE_OLLAMA_BASE_URL` defaulting to `http://localhost:11434`.
+As configurações usam variáveis de ambiente com o prefixo `NEURACORE_`. Por padrão, o Ollama é procurado em `http://localhost:11434`.
 
 ## Roadmap
 
-1. Define inference requests and implement the Ollama transport.
-2. Add API routes and health/metrics endpoints.
-3. Introduce queueing, resource-aware admission, scheduling, and recovery incrementally.
+1. Ampliar o contrato de inferência e o transporte do Ollama.
+2. Evoluir o scheduler e o controle de recursos.
+3. Adicionar sessões, tracing, diagnósticos e mecanismos de recuperação mais completos.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Use focused changes, tests, type hints, and Conventional Commits.
+As orientações estão em [CONTRIBUTING.md](CONTRIBUTING.md). Prefira mudanças pequenas, testes, tipagem e mensagens de commit em português.
