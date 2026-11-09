@@ -13,6 +13,7 @@ from neuracore.monitoring.metrics import (
 )
 from neuracore.queue.engine import InferenceQueue, QueueFullError
 from neuracore.resources.monitor import ResourceMonitor, ResourceSnapshot
+from neuracore.scheduler.admission import AdmissionPolicy, AdmissionRejectedError
 
 
 def create_router(
@@ -20,12 +21,14 @@ def create_router(
     resource_monitor: ResourceMonitor | None = None,
     inference_queue: InferenceQueue | None = None,
     session_store: SessionStore | None = None,
+    admission_policy: AdmissionPolicy | None = None,
 ) -> APIRouter:
     """Cria as rotas com o motor de inferência injetado."""
     router = APIRouter()
     monitor = resource_monitor or ResourceMonitor()
     queue = inference_queue
     sessions = session_store or SessionStore()
+    admission = admission_policy or AdmissionPolicy()
 
     @router.get("/health")
     async def health() -> dict[str, str]:
@@ -43,6 +46,10 @@ def create_router(
     async def inference(request: InferenceRequest) -> InferenceResponse:
         inference_requests.inc()
         with inference_duration_seconds.time():
+            try:
+                admission.admit(monitor.snapshot())
+            except AdmissionRejectedError as error:
+                raise HTTPException(status_code=503, detail=str(error)) from error
             if queue is not None:
                 try:
                     return await queue.submit(request)
