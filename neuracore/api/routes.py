@@ -11,6 +11,7 @@ from neuracore.monitoring.metrics import (
     render_metrics,
 )
 from neuracore.queue.engine import InferenceQueue, QueueFullError
+from neuracore.inference.sessions import Session, SessionMessage, SessionStore
 from neuracore.resources.monitor import ResourceMonitor, ResourceSnapshot
 
 
@@ -18,11 +19,13 @@ def create_router(
     engine: InferenceEngine,
     resource_monitor: ResourceMonitor | None = None,
     inference_queue: InferenceQueue | None = None,
+    session_store: SessionStore | None = None,
 ) -> APIRouter:
     """Cria as rotas com o motor de inferência injetado."""
     router = APIRouter()
     monitor = resource_monitor or ResourceMonitor()
     queue = inference_queue
+    sessions = session_store or SessionStore()
 
     @router.get("/health")
     async def health() -> dict[str, str]:
@@ -46,5 +49,23 @@ def create_router(
                 except QueueFullError as error:
                     raise HTTPException(status_code=429, detail=str(error)) from error
             return await engine.generate(request)
+
+    @router.post("/v1/sessions", response_model=Session, status_code=201)
+    async def create_session() -> Session:
+        return sessions.create()
+
+    @router.get("/v1/sessions/{session_id}", response_model=Session)
+    async def get_session(session_id: str) -> Session:
+        try:
+            return sessions.get(session_id)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
+
+    @router.post("/v1/sessions/{session_id}/messages", response_model=Session)
+    async def append_session_message(session_id: str, message: SessionMessage) -> Session:
+        try:
+            return sessions.append(session_id, message)
+        except KeyError as error:
+            raise HTTPException(status_code=404, detail=str(error)) from error
 
     return router

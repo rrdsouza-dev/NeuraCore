@@ -9,6 +9,7 @@ from neuracore.api.routes import create_router
 from neuracore.core.config import Settings
 from neuracore.inference.engine import InferenceEngine, create_default_engine
 from neuracore.queue.engine import InferenceQueue
+from neuracore.inference.sessions import SessionStore
 
 
 def create_app(engine: InferenceEngine | None = None) -> FastAPI:
@@ -18,6 +19,7 @@ def create_app(engine: InferenceEngine | None = None) -> FastAPI:
         runtime_engine,
         max_size=Settings().inference_queue_max_size,
     )
+    session_store = SessionStore()
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -28,7 +30,13 @@ def create_app(engine: InferenceEngine | None = None) -> FastAPI:
             await inference_queue.stop()
 
     application = FastAPI(title="NeuraCore", version="0.1.0", lifespan=lifespan)
-    application.include_router(create_router(runtime_engine, inference_queue=inference_queue))
+    application.include_router(
+        create_router(
+            runtime_engine,
+            inference_queue=inference_queue,
+            session_store=session_store,
+        )
+    )
     return application
 
 
