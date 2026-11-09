@@ -5,13 +5,13 @@ from fastapi.responses import Response
 
 from neuracore.inference.engine import InferenceEngine
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
+from neuracore.inference.sessions import Session, SessionMessage, SessionStore
 from neuracore.monitoring.metrics import (
     inference_duration_seconds,
     inference_requests,
     render_metrics,
 )
 from neuracore.queue.engine import InferenceQueue, QueueFullError
-from neuracore.inference.sessions import Session, SessionMessage, SessionStore
 from neuracore.resources.monitor import ResourceMonitor, ResourceSnapshot
 
 
