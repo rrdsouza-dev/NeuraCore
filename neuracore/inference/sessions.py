@@ -1,6 +1,6 @@
 """Sessões de conversa mantidas em memória durante o processo."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -17,7 +17,7 @@ class Session(BaseModel):
     """Estado de uma conversa local."""
 
     id: str = Field(default_factory=lambda: str(uuid4()))
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     messages: list[SessionMessage] = Field(default_factory=list)
 
 
