@@ -4,8 +4,8 @@ from neuracore.backends.base import InferenceBackend
 from neuracore.backends.ollama import OllamaBackend
 from neuracore.backends.openai_compatible import OpenAICompatibleBackend
 from neuracore.core.config import Settings
-from neuracore.recovery.fallback import FallbackBackend
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
+from neuracore.recovery.fallback import FallbackBackend
 
 
 class InferenceEngine:
