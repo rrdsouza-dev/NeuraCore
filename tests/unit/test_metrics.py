@@ -17,3 +17,4 @@ def test_metrics_expoe_formato_prometheus() -> None:
 
     assert response.status_code == 200
     assert "neuracore_inference_requests_total" in response.text
+    assert "neuracore_inference_duration_seconds" in response.text

@@ -5,7 +5,11 @@ from fastapi.responses import Response
 
 from neuracore.inference.engine import InferenceEngine
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
-from neuracore.monitoring.metrics import inference_requests, render_metrics
+from neuracore.monitoring.metrics import (
+    inference_duration_seconds,
+    inference_requests,
+    render_metrics,
+)
 from neuracore.queue.engine import InferenceQueue, QueueFullError
 from neuracore.resources.monitor import ResourceMonitor, ResourceSnapshot
 
@@ -35,11 +39,12 @@ def create_router(
     @router.post("/v1/inference", response_model=InferenceResponse)
     async def inference(request: InferenceRequest) -> InferenceResponse:
         inference_requests.inc()
-        if queue is not None:
-            try:
-                return await queue.submit(request)
-            except QueueFullError as error:
-                raise HTTPException(status_code=429, detail=str(error)) from error
-        return await engine.generate(request)
+        with inference_duration_seconds.time():
+            if queue is not None:
+                try:
+                    return await queue.submit(request)
+                except QueueFullError as error:
+                    raise HTTPException(status_code=429, detail=str(error)) from error
+            return await engine.generate(request)
 
     return router
