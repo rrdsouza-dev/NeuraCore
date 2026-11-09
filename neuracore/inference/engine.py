@@ -5,6 +5,7 @@ from neuracore.backends.ollama import OllamaBackend
 from neuracore.backends.openai_compatible import OpenAICompatibleBackend
 from neuracore.core.config import Settings
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
+from neuracore.monitoring.tracing import tracer
 from neuracore.recovery.fallback import FallbackBackend
 
 
@@ -16,8 +17,11 @@ class InferenceEngine:
 
     async def generate(self, request: InferenceRequest) -> InferenceResponse:
         """Envia a solicitação ao backend e normaliza o resultado."""
-        text = await self.backend.generate(request.prompt, model=request.model)
-        return InferenceResponse(model=request.model, text=text)
+        with tracer.start_as_current_span("neuracore.inference") as span:
+            span.set_attribute("neuracore.model", request.model)
+            text = await self.backend.generate(request.prompt, model=request.model)
+            span.set_attribute("neuracore.response_length", len(text))
+            return InferenceResponse(model=request.model, text=text)
 
 
 def create_default_engine(settings: Settings | None = None) -> InferenceEngine:
