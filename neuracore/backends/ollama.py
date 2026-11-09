@@ -6,6 +6,7 @@ import httpx
 
 from neuracore.backends.base import InferenceBackend
 from neuracore.core.config import Settings
+from neuracore.recovery.circuit_breaker import CircuitBreaker
 from neuracore.recovery.retry import RetryPolicy, execute_with_retry
 
 
@@ -19,6 +20,10 @@ class OllamaBackend(InferenceBackend):
     ) -> None:
         self.settings = settings or Settings()
         self._client = client
+        self._circuit = CircuitBreaker(
+            failure_threshold=self.settings.ollama_circuit_failure_threshold,
+            recovery_timeout_seconds=self.settings.ollama_circuit_recovery_seconds,
+        )
 
     async def generate(self, prompt: str, *, model: str) -> str:
         """Gera texto usando o endpoint não-streaming `/api/generate`."""
@@ -36,10 +41,13 @@ class OllamaBackend(InferenceBackend):
             response.raise_for_status()
             return cast(str, response.json()["response"])
 
-        return await execute_with_retry(
-            request,
-            RetryPolicy(
-                attempts=self.settings.ollama_retry_attempts,
-                initial_delay_seconds=self.settings.ollama_retry_delay_seconds,
-            ),
-        )
+        async def resilient_request() -> str:
+            return await execute_with_retry(
+                request,
+                RetryPolicy(
+                    attempts=self.settings.ollama_retry_attempts,
+                    initial_delay_seconds=self.settings.ollama_retry_delay_seconds,
+                ),
+            )
+
+        return await self._circuit.call(resilient_request)

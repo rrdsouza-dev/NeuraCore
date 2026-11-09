@@ -13,4 +13,6 @@ class Settings(BaseSettings):
     inference_queue_max_size: int = 100
     ollama_retry_attempts: int = 2
     ollama_retry_delay_seconds: float = 0.1
+    ollama_circuit_failure_threshold: int = 3
+    ollama_circuit_recovery_seconds: float = 30.0
     model_config = SettingsConfigDict(env_prefix="NEURACORE_", env_file=".env", extra="ignore")
