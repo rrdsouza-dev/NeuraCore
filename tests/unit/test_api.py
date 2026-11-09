@@ -34,8 +34,9 @@ def test_inference_expoe_resposta_normalizada() -> None:
 
 
 def test_inference_recusa_recursos_acima_do_limite() -> None:
-    from neuracore.api.routes import create_router
     from fastapi import FastAPI
+
+    from neuracore.api.routes import create_router
 
     application = FastAPI()
     application.include_router(
