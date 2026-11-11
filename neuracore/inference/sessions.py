@@ -1,8 +1,8 @@
 """Sessões de conversa mantidas em memória durante o processo."""
 
-from datetime import UTC, datetime
 import json
 import sqlite3
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from pydantic import BaseModel, Field

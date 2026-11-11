@@ -1,5 +1,5 @@
 def test_sessoes_podem_ser_persistidas_em_sqlite(tmp_path) -> None:
-    from neuracore.inference.sessions import SQLiteSessionStore, SessionMessage
+    from neuracore.inference.sessions import SessionMessage, SQLiteSessionStore
 
     path = str(tmp_path / "sessoes.db")
     first = SQLiteSessionStore(path)

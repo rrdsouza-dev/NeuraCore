@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from neuracore.api.routes import create_router
 from neuracore.core.config import Settings
 from neuracore.inference.engine import InferenceEngine, create_default_engine
-from neuracore.inference.sessions import SQLiteSessionStore, SessionStore
+from neuracore.inference.sessions import SessionStore, SQLiteSessionStore
 from neuracore.queue.engine import InferenceQueue
 
 
