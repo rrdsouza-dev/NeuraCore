@@ -45,3 +45,8 @@ async def test_fila_rejeita_excesso_de_solicitacoes() -> None:
         await queue.submit(InferenceRequest(model="teste", prompt="excesso"))
 
     await queue.stop()
+
+
+def test_fila_rejeita_quantidade_invalida_de_workers() -> None:
+    with pytest.raises(ValueError, match="workers"):
+        InferenceQueue(InferenceEngine(BackendDeTeste()), workers=0)

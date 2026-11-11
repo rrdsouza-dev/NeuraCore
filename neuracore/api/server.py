@@ -23,6 +23,7 @@ def create_app(
     inference_queue = InferenceQueue(
         runtime_engine,
         max_size=runtime_settings.inference_queue_max_size,
+        workers=runtime_settings.inference_queue_workers,
     )
     session_store: SessionStore = (
         SQLiteSessionStore(runtime_settings.session_database_path)
