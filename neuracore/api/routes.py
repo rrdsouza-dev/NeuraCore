@@ -61,12 +61,28 @@ def create_router(
                 admission.admit(monitor.snapshot())
             except AdmissionRejectedError as error:
                 raise HTTPException(status_code=503, detail=str(error)) from error
-            if queue is not None:
+            if request.session_id is not None:
                 try:
-                    return await queue.submit(request)
-                except QueueFullError as error:
-                    raise HTTPException(status_code=429, detail=str(error)) from error
-            return await engine.generate(request)
+                    sessions.append(
+                        request.session_id,
+                        SessionMessage(role="user", content=request.prompt),
+                    )
+                except KeyError as error:
+                    raise HTTPException(status_code=404, detail=str(error)) from error
+            try:
+                response = (
+                    await queue.submit(request)
+                    if queue is not None
+                    else await engine.generate(request)
+                )
+            except QueueFullError as error:
+                raise HTTPException(status_code=429, detail=str(error)) from error
+            if request.session_id is not None:
+                sessions.append(
+                    request.session_id,
+                    SessionMessage(role="assistant", content=response.text),
+                )
+            return response
 
     @router.post("/v1/sessions", response_model=Session, status_code=201)
     async def create_session() -> Session:

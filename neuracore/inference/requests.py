@@ -11,6 +11,7 @@ class InferenceRequest(BaseModel):
     prompt: str = Field(min_length=1)
     model: str = Field(min_length=1)
     priority: Priority = Priority.NORMAL
+    session_id: str | None = None
 
 
 class InferenceResponse(BaseModel):
