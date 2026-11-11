@@ -1,7 +1,6 @@
 """Factory da aplicação FastAPI."""
 
-from collections.abc import AsyncIterator
-from collections.abc import Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
