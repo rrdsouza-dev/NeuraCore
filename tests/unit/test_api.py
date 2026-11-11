@@ -25,6 +25,14 @@ def test_health_retorna_status_ok() -> None:
     assert response.json() == {"status": "ok"}
 
 
+def test_health_expoe_status_da_fila() -> None:
+    with TestClient(create_app(InferenceEngine(BackendDeTeste()))) as client:
+        response = client.get("/health/queue")
+
+    assert response.status_code == 200
+    assert response.json()["running"] is True
+
+
 def test_inference_expoe_resposta_normalizada() -> None:
     with TestClient(create_app(InferenceEngine(BackendDeTeste()))) as client:
         response = client.post("/v1/inference", json={"model": "teste", "prompt": "Olá"})

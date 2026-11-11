@@ -2,12 +2,23 @@
 
 import asyncio
 
+from pydantic import BaseModel
+
 from neuracore.inference.engine import InferenceEngine
 from neuracore.inference.requests import InferenceRequest, InferenceResponse
 
 
 class QueueFullError(RuntimeError):
     """Indica que a fila atingiu o limite configurado."""
+
+
+class QueueStatus(BaseModel):
+    """Estado operacional atual da fila."""
+
+    pending: int
+    capacity: int
+    workers: int
+    running: bool
 
 
 class InferenceQueue:
@@ -53,6 +64,15 @@ class InferenceQueue:
         except asyncio.QueueFull as error:
             raise QueueFullError("A fila de inferência está cheia") from error
         return await result
+
+    def status(self) -> QueueStatus:
+        """Retorna o estado sem alterar a fila."""
+        return QueueStatus(
+            pending=self._jobs.qsize(),
+            capacity=self._jobs.maxsize,
+            workers=self._worker_count,
+            running=bool(self._worker_tasks),
+        )
 
     async def _process(self) -> None:
         while True:

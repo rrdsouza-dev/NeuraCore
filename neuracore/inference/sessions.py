@@ -48,6 +48,9 @@ class SessionStore:
         session.messages.append(message)
         return session
 
+    def close(self) -> None:
+        """Libera recursos externos; o armazenamento em memória não precisa agir."""
+
 
 class SQLiteSessionStore(SessionStore):
     """Armazena sessões em SQLite para sobreviver ao reinício do processo."""
@@ -92,3 +95,6 @@ class SQLiteSessionStore(SessionStore):
         )
         self._connection.commit()
         return session
+
+    def close(self) -> None:
+        self._connection.close()

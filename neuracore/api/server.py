@@ -38,6 +38,7 @@ def create_app(
             yield
         finally:
             await inference_queue.stop()
+            session_store.close()
 
     application = FastAPI(title="NeuraCore", version="0.1.0", lifespan=lifespan)
 

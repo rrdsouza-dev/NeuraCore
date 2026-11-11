@@ -12,7 +12,7 @@ from neuracore.monitoring.metrics import (
     inference_requests,
     render_metrics,
 )
-from neuracore.queue.engine import InferenceQueue, QueueFullError
+from neuracore.queue.engine import InferenceQueue, QueueFullError, QueueStatus
 from neuracore.resources.monitor import ResourceMonitor, ResourceSnapshot
 from neuracore.scheduler.admission import AdmissionPolicy, AdmissionRejectedError
 
@@ -44,6 +44,14 @@ def create_router(
     @router.get("/health/resources", response_model=ResourceSnapshot)
     async def health_resources() -> ResourceSnapshot:
         return monitor.snapshot()
+
+    @router.get("/health/queue", response_model=QueueStatus)
+    async def health_queue() -> QueueStatus:
+        return (
+            queue.status()
+            if queue is not None
+            else QueueStatus(pending=0, capacity=0, workers=0, running=False)
+        )
 
     @router.get("/diagnostics", response_model=DiagnosticsSnapshot)
     async def diagnostics() -> DiagnosticsSnapshot:

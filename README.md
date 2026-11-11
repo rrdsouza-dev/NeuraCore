@@ -58,6 +58,7 @@ Endpoints principais:
 
 - `GET /health` — verifica se a aplicação está respondendo.
 - `GET /health/resources` — mostra CPU e memória disponíveis.
+- `GET /health/queue` — mostra capacidade e workers ativos.
 - `GET /metrics` — expõe métricas para o Prometheus.
 - `POST /v1/inference` — envia uma solicitação de inferência.
 
