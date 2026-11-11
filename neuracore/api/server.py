@@ -1,9 +1,11 @@
 """Factory da aplicação FastAPI."""
 
 from collections.abc import AsyncIterator
+from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
+from uuid import uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 
 from neuracore.api.routes import create_router
 from neuracore.core.config import Settings
@@ -38,6 +40,17 @@ def create_app(
             await inference_queue.stop()
 
     application = FastAPI(title="NeuraCore", version="0.1.0", lifespan=lifespan)
+
+    @application.middleware("http")
+    async def request_id_middleware(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        request_id = request.headers.get("X-Request-ID", str(uuid4()))
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
     application.include_router(
         create_router(
             runtime_engine,
