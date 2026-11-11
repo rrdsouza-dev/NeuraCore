@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from neuracore.api.routes import create_router
 from neuracore.core.config import Settings
 from neuracore.inference.engine import InferenceEngine, create_default_engine
-from neuracore.inference.sessions import SessionStore
+from neuracore.inference.sessions import SQLiteSessionStore, SessionStore
 from neuracore.queue.engine import InferenceQueue
 
 
@@ -23,7 +23,11 @@ def create_app(
         runtime_engine,
         max_size=runtime_settings.inference_queue_max_size,
     )
-    session_store = SessionStore()
+    session_store: SessionStore = (
+        SQLiteSessionStore(runtime_settings.session_database_path)
+        if runtime_settings.session_database_path
+        else SessionStore()
+    )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:

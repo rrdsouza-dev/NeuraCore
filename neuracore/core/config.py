@@ -18,4 +18,5 @@ class Settings(BaseSettings):
     fallback_base_url: str | None = None
     fallback_api_key: str | None = None
     api_key: str | None = None
+    session_database_path: str | None = None
     model_config = SettingsConfigDict(env_prefix="NEURACORE_", env_file=".env", extra="ignore")
