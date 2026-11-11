@@ -17,4 +17,5 @@ class Settings(BaseSettings):
     ollama_circuit_recovery_seconds: float = 30.0
     fallback_base_url: str | None = None
     fallback_api_key: str | None = None
+    api_key: str | None = None
     model_config = SettingsConfigDict(env_prefix="NEURACORE_", env_file=".env", extra="ignore")

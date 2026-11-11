@@ -46,6 +46,8 @@ As configurações usam variáveis de ambiente com o prefixo `NEURACORE_`. Por p
 
 Para configurar um fallback compatível com OpenAI, defina `NEURACORE_FALLBACK_BASE_URL` e, se necessário, `NEURACORE_FALLBACK_API_KEY`.
 
+Em ambientes que exigem proteção, defina `NEURACORE_API_KEY`. Nesse caso, envie a mesma chave no cabeçalho `X-API-Key`.
+
 ## Executando a API
 
 ```powershell

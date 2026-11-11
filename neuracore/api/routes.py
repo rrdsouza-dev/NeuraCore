@@ -1,6 +1,6 @@
 """Rotas HTTP da API pública inicial."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import Response
 
 from neuracore.inference.engine import InferenceEngine
@@ -23,9 +23,15 @@ def create_router(
     inference_queue: InferenceQueue | None = None,
     session_store: SessionStore | None = None,
     admission_policy: AdmissionPolicy | None = None,
+    api_key: str | None = None,
 ) -> APIRouter:
     """Cria as rotas com o motor de inferência injetado."""
-    router = APIRouter()
+
+    def authorize(x_api_key: str | None = Header(default=None)) -> None:
+        if api_key is not None and x_api_key != api_key:
+            raise HTTPException(status_code=401, detail="Chave de API inválida")
+
+    router = APIRouter(dependencies=[Depends(authorize)])
     monitor = resource_monitor or ResourceMonitor()
     queue = inference_queue
     sessions = session_store or SessionStore()

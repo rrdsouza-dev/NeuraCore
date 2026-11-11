@@ -12,12 +12,16 @@ from neuracore.inference.sessions import SessionStore
 from neuracore.queue.engine import InferenceQueue
 
 
-def create_app(engine: InferenceEngine | None = None) -> FastAPI:
+def create_app(
+    engine: InferenceEngine | None = None,
+    settings: Settings | None = None,
+) -> FastAPI:
     """Cria a aplicação com dependências explícitas e configuração padrão."""
-    runtime_engine = engine or create_default_engine()
+    runtime_settings = settings or Settings()
+    runtime_engine = engine or create_default_engine(runtime_settings)
     inference_queue = InferenceQueue(
         runtime_engine,
-        max_size=Settings().inference_queue_max_size,
+        max_size=runtime_settings.inference_queue_max_size,
     )
     session_store = SessionStore()
 
@@ -35,6 +39,7 @@ def create_app(engine: InferenceEngine | None = None) -> FastAPI:
             runtime_engine,
             inference_queue=inference_queue,
             session_store=session_store,
+            api_key=runtime_settings.api_key,
         )
     )
     return application
