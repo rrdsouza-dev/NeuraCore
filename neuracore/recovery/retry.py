@@ -14,6 +14,7 @@ class RetryPolicy:
 
     attempts: int = 2
     initial_delay_seconds: float = 0.1
+    should_retry: Callable[[Exception], bool] | None = None
 
 
 async def execute_with_retry(operation: Callable[[], Awaitable[T]], policy: RetryPolicy) -> T:
@@ -26,6 +27,8 @@ async def execute_with_retry(operation: Callable[[], Awaitable[T]], policy: Retr
             return await operation()
         except Exception as error:
             last_error = error
+            if policy.should_retry is not None and not policy.should_retry(error):
+                raise
             if attempt + 1 < policy.attempts:
                 await asyncio.sleep(policy.initial_delay_seconds * (2**attempt))
     assert last_error is not None

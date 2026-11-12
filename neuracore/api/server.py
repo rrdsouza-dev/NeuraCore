@@ -26,9 +26,12 @@ def create_app(
         workers=runtime_settings.inference_queue_workers,
     )
     session_store: SessionStore = (
-        SQLiteSessionStore(runtime_settings.session_database_path)
+        SQLiteSessionStore(
+            runtime_settings.session_database_path,
+            max_messages=runtime_settings.session_max_messages,
+        )
         if runtime_settings.session_database_path
-        else SessionStore()
+        else SessionStore(max_messages=runtime_settings.session_max_messages)
     )
 
     @asynccontextmanager

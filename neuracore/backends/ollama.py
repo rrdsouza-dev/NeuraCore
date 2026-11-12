@@ -38,11 +38,17 @@ class OllamaBackend(InferenceBackend):
             return cast(str, response.json()["response"])
 
         async def resilient_request() -> str:
+            def is_transient(error: Exception) -> bool:
+                return isinstance(error, httpx.TransportError) or (
+                    isinstance(error, httpx.HTTPStatusError) and error.response.status_code >= 500
+                )
+
             return await execute_with_retry(
                 request,
                 RetryPolicy(
                     attempts=self.settings.ollama_retry_attempts,
                     initial_delay_seconds=self.settings.ollama_retry_delay_seconds,
+                    should_retry=is_transient,
                 ),
             )
 

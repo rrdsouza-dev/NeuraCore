@@ -1,5 +1,7 @@
 """Rotas HTTP da API pública inicial."""
 
+import secrets
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import Response
 
@@ -28,7 +30,9 @@ def create_router(
     """Cria as rotas com o motor de inferência injetado."""
 
     def authorize(x_api_key: str | None = Header(default=None)) -> None:
-        if api_key is not None and x_api_key != api_key:
+        if api_key is not None and (
+            x_api_key is None or not secrets.compare_digest(x_api_key, api_key)
+        ):
             raise HTTPException(status_code=401, detail="Chave de API inválida")
 
     router = APIRouter(dependencies=[Depends(authorize)])

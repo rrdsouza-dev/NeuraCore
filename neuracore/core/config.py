@@ -20,4 +20,5 @@ class Settings(BaseSettings):
     fallback_api_key: str | None = None
     api_key: str | None = None
     session_database_path: str | None = None
+    session_max_messages: int = 100
     model_config = SettingsConfigDict(env_prefix="NEURACORE_", env_file=".env", extra="ignore")

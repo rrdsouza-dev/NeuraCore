@@ -26,8 +26,11 @@ class Session(BaseModel):
 class SessionStore:
     """Armazena sessões em memória; persistência será adicionada depois."""
 
-    def __init__(self) -> None:
+    def __init__(self, max_messages: int = 100) -> None:
+        if max_messages < 1:
+            raise ValueError("O limite de mensagens deve ser positivo")
         self._sessions: dict[str, Session] = {}
+        self._max_messages = max_messages
 
     def create(self) -> Session:
         """Cria e registra uma sessão vazia."""
@@ -46,6 +49,7 @@ class SessionStore:
         """Adiciona uma mensagem e retorna o estado atualizado."""
         session = self.get(session_id)
         session.messages.append(message)
+        del session.messages[: -self._max_messages]
         return session
 
     def close(self) -> None:
@@ -55,8 +59,11 @@ class SessionStore:
 class SQLiteSessionStore(SessionStore):
     """Armazena sessões em SQLite para sobreviver ao reinício do processo."""
 
-    def __init__(self, database_path: str) -> None:
+    def __init__(self, database_path: str, max_messages: int = 100) -> None:
+        if max_messages < 1:
+            raise ValueError("O limite de mensagens deve ser positivo")
         self.database_path = database_path
+        self._max_messages = max_messages
         self._connection = sqlite3.connect(database_path, check_same_thread=False)
         self._connection.execute(
             "CREATE TABLE IF NOT EXISTS sessions "
@@ -88,6 +95,7 @@ class SQLiteSessionStore(SessionStore):
     def append(self, session_id: str, message: SessionMessage) -> Session:
         session = self.get(session_id)
         session.messages.append(message)
+        del session.messages[: -self._max_messages]
         messages_json = json.dumps([item.model_dump() for item in session.messages])
         self._connection.execute(
             "UPDATE sessions SET messages = ? WHERE id = ?",
