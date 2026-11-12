@@ -1,6 +1,9 @@
 """Rotas HTTP da API pública inicial."""
 
+import asyncio
 import secrets
+from collections.abc import Callable
+from typing import TypeVar
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import Response
@@ -17,6 +20,8 @@ from neuracore.monitoring.metrics import (
 from neuracore.queue.engine import InferenceQueue, QueueFullError, QueueStatus
 from neuracore.resources.monitor import ResourceMonitor, ResourceSnapshot
 from neuracore.scheduler.admission import AdmissionPolicy, AdmissionRejectedError
+
+T = TypeVar("T")
 
 
 def create_router(
@@ -40,6 +45,9 @@ def create_router(
     queue = inference_queue
     sessions = session_store or SessionStore()
     admission = admission_policy or AdmissionPolicy()
+
+    async def store_call(operation: Callable[..., T], *args: object) -> T:
+        return await asyncio.to_thread(operation, *args)
 
     @router.get("/health")
     async def health() -> dict[str, str]:
@@ -75,7 +83,8 @@ def create_router(
                 raise HTTPException(status_code=503, detail=str(error)) from error
             if request.session_id is not None:
                 try:
-                    sessions.append(
+                    await store_call(
+                        sessions.append,
                         request.session_id,
                         SessionMessage(role="user", content=request.prompt),
                     )
@@ -90,7 +99,8 @@ def create_router(
             except QueueFullError as error:
                 raise HTTPException(status_code=429, detail=str(error)) from error
             if request.session_id is not None:
-                sessions.append(
+                await store_call(
+                    sessions.append,
                     request.session_id,
                     SessionMessage(role="assistant", content=response.text),
                 )
@@ -98,19 +108,19 @@ def create_router(
 
     @router.post("/v1/sessions", response_model=Session, status_code=201)
     async def create_session() -> Session:
-        return sessions.create()
+        return await store_call(sessions.create)
 
     @router.get("/v1/sessions/{session_id}", response_model=Session)
     async def get_session(session_id: str) -> Session:
         try:
-            return sessions.get(session_id)
+            return await store_call(sessions.get, session_id)
         except KeyError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
 
     @router.post("/v1/sessions/{session_id}/messages", response_model=Session)
     async def append_session_message(session_id: str, message: SessionMessage) -> Session:
         try:
-            return sessions.append(session_id, message)
+            return await store_call(sessions.append, session_id, message)
         except KeyError as error:
             raise HTTPException(status_code=404, detail=str(error)) from error
 
