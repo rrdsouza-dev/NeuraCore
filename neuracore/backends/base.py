@@ -12,3 +12,4 @@ class InferenceBackend(ABC):
 
     async def close(self) -> None:
         """Libera recursos do backend."""
+        return None
