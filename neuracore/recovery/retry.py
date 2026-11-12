@@ -31,5 +31,6 @@ async def execute_with_retry(operation: Callable[[], Awaitable[T]], policy: Retr
                 raise
             if attempt + 1 < policy.attempts:
                 await asyncio.sleep(policy.initial_delay_seconds * (2**attempt))
-    assert last_error is not None
+    if last_error is None:
+        raise RuntimeError("A operação terminou sem resultado ou erro")
     raise last_error

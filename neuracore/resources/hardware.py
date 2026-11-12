@@ -1,5 +1,7 @@
 """Descoberta opcional de GPUs NVIDIA disponíveis."""
 
+from contextlib import suppress
+
 from pydantic import BaseModel, Field
 
 
@@ -42,7 +44,5 @@ class HardwareDetector:
         except Exception:
             return HardwareSnapshot()
         finally:
-            try:
+            with suppress(Exception):
                 pynvml.nvmlShutdown()
-            except Exception:
-                pass
