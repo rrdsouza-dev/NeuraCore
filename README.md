@@ -4,18 +4,20 @@ O NeuraCore é uma base em Python para executar modelos de IA localmente de form
 
 ## Status
 
-O projeto ainda está no começo. Já existe uma API funcional, integração inicial com o Ollama, fila assíncrona, prioridades, limite de capacidade, métricas, monitoramento básico, retry e testes automatizados. Os componentes mais avançados ainda estão sendo construídos.
+MVP operacional concluído. A base já está pronta para desenvolvimento e uso local, com API funcional, integração com Ollama e backends compatíveis com OpenAI, fila assíncrona, prioridades, limite de capacidade, sessões, persistência SQLite, métricas, tracing, diagnósticos, retry, fallback e testes automatizados.
 
 ## Arquitetura
 
 O pacote `neuracore` é dividido por responsabilidade: `core`, `inference`, `backends`, `scheduler`, `resources`, `queue`, `monitoring`, `recovery`, `api`, `policies` e `cli`. O Ollama é o primeiro backend. Novos backends podem implementar o contrato assíncrono definido em `backends.base`.
 
-## Componentes planejados
+## Componentes disponíveis
 
-- Abstração para backends e gerenciamento do ciclo de vida dos modelos
-- Monitoramento de recursos e escalonamento
-- Filas assíncronas e sessões de inferência
-- Saúde da aplicação, métricas, tracing, diagnósticos e recuperação
+- Abstração para backends e gerenciamento do ciclo de vida
+- Monitoramento de recursos e política de admissão
+- Filas assíncronas com prioridades e múltiplos workers
+- Sessões em memória ou SQLite com limite de histórico
+- Saúde, métricas Prometheus, tracing OpenTelemetry e diagnósticos
+- Retry seletivo, circuit breaker e fallback
 - Serviço FastAPI e CLI com Typer
 
 ## Tecnologias e requisitos
@@ -40,6 +42,8 @@ pytest
 ruff check .
 ruff format --check .
 mypy
+python -m pip_audit
+python -m bandit -r neuracore -q
 ```
 
 As configurações usam variáveis de ambiente com o prefixo `NEURACORE_`. Por padrão, o Ollama é procurado em `http://localhost:11434`.
@@ -74,11 +78,24 @@ Exemplo de requisição:
 
 A fila tem limite de capacidade, aceita as prioridades `alta`, `normal` e `baixa` e responde com HTTP 429 quando está cheia.
 
-## Roadmap
+## Verificação antes de publicar
 
-1. Expor sessões pela API e avaliar persistência.
-2. Evoluir o scheduler e conectar a política de admissão à fila.
-3. Adicionar tracing, diagnósticos e testes de integração com Ollama em execução.
+```powershell
+python -m pip check
+python -m pip_audit
+python -m bandit -r neuracore -q
+ruff check .
+mypy
+pytest
+```
+
+O projeto não baixa modelos automaticamente. Antes de usar inferência, deixe o Ollama em execução e confirme que o modelo configurado está disponível.
+
+## Próximas evoluções
+
+1. Testes de carga contínuos em ambiente de implantação.
+2. Integrações automatizadas com Ollama em execução.
+3. Painéis de observabilidade e exemplos de implantação.
 
 ## Contribuindo
 
