@@ -23,6 +23,9 @@ class InferenceEngine:
             span.set_attribute("neuracore.response_length", len(text))
             return InferenceResponse(model=request.model, text=text)
 
+    async def close(self) -> None:
+        await self.backend.close()
+
 
 def create_default_engine(settings: Settings | None = None) -> InferenceEngine:
     """Cria o motor com o backend inicial definido nas configurações."""

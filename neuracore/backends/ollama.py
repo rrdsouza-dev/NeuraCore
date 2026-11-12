@@ -19,7 +19,10 @@ class OllamaBackend(InferenceBackend):
         client: httpx.AsyncClient | None = None,
     ) -> None:
         self.settings = settings or Settings()
-        self._client = client
+        self._client = client or httpx.AsyncClient(
+            base_url=self.settings.ollama_base_url,
+            timeout=self.settings.ollama_timeout_seconds,
+        )
         self._circuit = CircuitBreaker(
             failure_threshold=self.settings.ollama_circuit_failure_threshold,
             recovery_timeout_seconds=self.settings.ollama_circuit_recovery_seconds,
@@ -30,14 +33,7 @@ class OllamaBackend(InferenceBackend):
         payload = {"model": model, "prompt": prompt, "stream": False}
 
         async def request() -> str:
-            if self._client is None:
-                async with httpx.AsyncClient(
-                    base_url=self.settings.ollama_base_url,
-                    timeout=self.settings.ollama_timeout_seconds,
-                ) as client:
-                    response = await client.post("/api/generate", json=payload)
-            else:
-                response = await self._client.post("/api/generate", json=payload)
+            response = await self._client.post("/api/generate", json=payload)
             response.raise_for_status()
             return cast(str, response.json()["response"])
 
@@ -51,3 +47,6 @@ class OllamaBackend(InferenceBackend):
             )
 
         return await self._circuit.call(resilient_request)
+
+    async def close(self) -> None:
+        await self._client.aclose()

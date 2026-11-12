@@ -18,7 +18,7 @@ class OpenAICompatibleBackend(InferenceBackend):
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.api_key = api_key
-        self._client = client
+        self._client = client or httpx.AsyncClient(base_url=self.base_url)
 
     async def generate(self, prompt: str, *, model: str) -> str:
         """Envia uma mensagem única e retorna o conteúdo da primeira escolha."""
@@ -28,13 +28,10 @@ class OpenAICompatibleBackend(InferenceBackend):
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
         }
-        if self._client is None:
-            async with httpx.AsyncClient(base_url=self.base_url) as client:
-                response = await client.post("/v1/chat/completions", json=payload, headers=headers)
-        else:
-            response = await self._client.post(
-                "/v1/chat/completions", json=payload, headers=headers
-            )
+        response = await self._client.post("/v1/chat/completions", json=payload, headers=headers)
         response.raise_for_status()
         data = response.json()
         return cast(str, data["choices"][0]["message"]["content"])
+
+    async def close(self) -> None:
+        await self._client.aclose()

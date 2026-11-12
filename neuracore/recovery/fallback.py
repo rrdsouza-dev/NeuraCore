@@ -15,3 +15,7 @@ class FallbackBackend(InferenceBackend):
             return await self.primary.generate(prompt, model=model)
         except Exception:
             return await self.fallback.generate(prompt, model=model)
+
+    async def close(self) -> None:
+        await self.primary.close()
+        await self.fallback.close()

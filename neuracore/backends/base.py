@@ -9,3 +9,6 @@ class InferenceBackend(ABC):
     @abstractmethod
     async def generate(self, prompt: str, *, model: str) -> str:
         """Generate a response for a prompt."""
+
+    async def close(self) -> None:
+        """Libera recursos do backend."""
