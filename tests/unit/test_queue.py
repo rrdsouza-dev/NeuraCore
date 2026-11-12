@@ -47,6 +47,21 @@ async def test_fila_rejeita_excesso_de_solicitacoes() -> None:
     await queue.stop()
 
 
+@pytest.mark.asyncio
+async def test_fila_rejeita_job_pendente_ao_encerrar() -> None:
+    queue = InferenceQueue(InferenceEngine(BackendDeTeste()), max_size=1)
+    await queue.start()
+    loop = asyncio.get_running_loop()
+    result = loop.create_future()
+    request = InferenceRequest(model="teste", prompt="pendente")
+    queue._jobs.put_nowait((request.priority.weight, 0, request, result))
+
+    await queue.stop()
+
+    with pytest.raises(RuntimeError, match="fila foi encerrada"):
+        result.result()
+
+
 def test_fila_rejeita_quantidade_invalida_de_workers() -> None:
     with pytest.raises(ValueError, match="workers"):
         InferenceQueue(InferenceEngine(BackendDeTeste()), workers=0)

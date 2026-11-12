@@ -47,10 +47,21 @@ class InferenceQueue:
     async def stop(self) -> None:
         """Encerra o worker e aguarda sua finalização."""
         if self._worker_tasks:
+            self._reject_pending_jobs()
             for worker in self._worker_tasks:
                 worker.cancel()
             await asyncio.gather(*self._worker_tasks, return_exceptions=True)
             self._worker_tasks = []
+
+    def _reject_pending_jobs(self) -> None:
+        while True:
+            try:
+                _, _, _, result = self._jobs.get_nowait()
+            except asyncio.QueueEmpty:
+                return
+            if not result.done():
+                result.set_exception(RuntimeError("A fila foi encerrada"))
+            self._jobs.task_done()
 
     async def submit(self, request: InferenceRequest) -> InferenceResponse:
         """Adiciona uma solicitação e aguarda sua resposta."""
@@ -79,6 +90,10 @@ class InferenceQueue:
             _, _, request, result = await self._jobs.get()
             try:
                 result.set_result(await self.engine.generate(request))
+            except asyncio.CancelledError:
+                if not result.done():
+                    result.set_exception(RuntimeError("A fila foi encerrada"))
+                raise
             except Exception as error:
                 result.set_exception(error)
             finally:
